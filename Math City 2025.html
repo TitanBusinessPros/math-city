@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Builder Math Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a4a7c, #0d1b2a);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        header {
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a4a7c;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4fc3f7, #81d4fa, #29b6f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .money-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .math-question {
+            background: rgba(20, 40, 80, 0.8);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid #4fc3f7;
+            flex-grow: 1;
+            max-width: 600px;
+        }
+        
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: linear-gradient(to bottom, #4fc3f7, #0288d1);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 195, 247, 0.4);
+        }
+        
+        .control-btn.delete-mode {
+            background: linear-gradient(to bottom, #ff5252, #d32f2f);
+        }
+        
+        .control-btn.move-mode {
+            background: linear-gradient(to bottom, #76ff03, #64dd17);
+        }
+        
+        .control-btn.save-game {
+            background: linear-gradient(to bottom, #ff9800, #f57c00);
+        }
+        
+        .game-area {
+            display: flex;
+            gap: 15px;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+        
+        .components-panel {
+            width: 280px;
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a4a7c;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .components-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4fc3f7;
+        }
+        
+        .components-header h2 {
+            color: #4fc3f7;
+            font-size: 1.5rem;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 6px 12px;
+            background: rgba(30, 60, 90, 0.7);
+            border: none;
+            border-radius: 20px;
+            color: #b0bec5;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .category-tab.active {
+            background: #4fc3f7;
+            color: #0d1b2a;
+            font-weight: bold;
+        }
+        
+        .components-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .component-category {
+            margin-bottom: 20px;
+        }
+        
+        .category-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #81d4fa;
+            padding-left: 10px;
+            border-left: 3px solid #81d4fa;
+        }
+        
+        .component-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .component-item {
+            background: rgba(30, 60, 90, 0.7);
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+        
+        .component-item:hover {
+            background: rgba(40, 80, 120, 0.9);
+            transform: translateY(-3px);
+            border-color: #4fc3f7;
+            box-shadow: 0 5px 15px rgba(79, 195, 247, 0.3);
+        }
+        
+        .component-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        
+        .component-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .component-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .component-cost {
+            font-size: 0.75rem;
+            color: #ffd700;
+            margin-top: 3px;
+        }
+        
+        .city-grid-container {
+            flex-grow: 1;
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a4a7c;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .city-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4fc3f7;
+        }
+        
+        .city-header h2 {
+            color: #4fc3f7;
+            font-size: 1.5rem;
+        }
+        
+        .city-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .stat {
+            background: rgba(30, 60, 90, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .city-grid-wrapper {
+            flex-grow: 1;
+            overflow: auto;
+            background: #0a1929;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #1e3a5f;
+        }
+        
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(40, 24px);
+            grid-template-rows: repeat(40, 24px);
+            gap: 1px;
+            margin: 0 auto;
+            width: fit-content;
+            background: #0a1929;
+            border: 2px solid #1e3a5f;
+            border-radius: 4px;
+            padding: 5px;
+            position: relative;
+        }
+        
+        .grid-cell {
+            width: 24px;
+            height: 24px;
+            background: #1e3a5f;
+            border: 1px solid #2a4a7a;
+            border-radius: 2px;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .grid-cell:hover {
+            background: #2a4a7a;
+        }
+        
+        .grid-cell.occupied {
+            background: #0d1b2a;
+            border-color: #1e3a5f;
+        }
+        
+        .building {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            border-radius: 2px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .person {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            z-index: 3;
+            transition: all 0.5s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .animal {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            z-index: 3;
+            transition: all 0.5s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .moving {
+            z-index: 10;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Road styles */
+        .road {
+            background-color: #555 !important;
+        }
+        
+        .road-horizontal {
+            background: linear-gradient(to bottom, #555 45%, #333 45%, #333 55%, #555 55%) !important;
+        }
+        
+        .road-vertical {
+            background: linear-gradient(to right, #555 45%, #333 45%, #333 55%, #555 55%) !important;
+        }
+        
+        .road-cross {
+            background: 
+                linear-gradient(to right, #555 45%, #333 45%, #333 55%, #555 55%),
+                linear-gradient(to bottom, #555 45%, #333 45%, #333 55%, #555 55%) !important;
+        }
+        
+        /* Fence styles */
+        .fence {
+            background-color: #8B4513 !important;
+        }
+        
+        .fence-horizontal {
+            background: linear-gradient(to bottom, #8B4513 40%, #5D2906 40%, #5D2906 60%, #8B4513 60%) !important;
+        }
+        
+        .fence-vertical {
+            background: linear-gradient(to right, #8B4513 40%, #5D2906 40%, #5D2906 60%, #8B4513 60%) !important;
+        }
+        
+        .delete-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border-radius: 2px;
+            cursor: pointer;
+            z-index: 4;
+        }
+        
+        .grid-cell.occupied:hover .delete-overlay {
+            display: flex;
+        }
+        
+        .move-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background: #76ff03;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+            z-index: 5;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #2a4a7c);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.5);
+            border: 2px solid #4fc3f7;
+            animation: modalAppear 0.3s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #4fc3f7;
+            font-size: 2rem;
+        }
+        
+        .math-problem {
+            font-size: 2.2rem;
+            margin: 20px 0;
+            background: rgba(0, 50, 100, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .answer-input {
+            font-size: 1.8rem;
+            padding: 12px;
+            width: 180px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid #4fc3f7;
+            background: #0d1b2a;
+            color: white;
+            margin: 15px 0;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(to bottom, #4fc3f7, #0288d1);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(79, 195, 247, 0.5);
+        }
+        
+        .message {
+            margin-top: 15px;
+            font-size: 1.3rem;
+            min-height: 30px;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #76ff03;
+        }
+        
+        .error {
+            color: #ff5252;
+        }
+        
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1001;
+        }
+        
+        .movement-timer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(30, 60, 90, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1001;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 60, 90, 0.5);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4fc3f7;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #29b6f6;
+        }
+        
+        @media (max-width: 1200px) {
+            .game-area {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .components-panel {
+                width: 100%;
+                max-height: 300px;
+            }
+            
+            .city-grid {
+                grid-template-columns: repeat(30, 20px);
+                grid-template-rows: repeat(30, 20px);
+            }
+            
+            .grid-cell {
+                width: 20px;
+                height: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-info {
+                flex-direction: column;
+            }
+            
+            .city-grid {
+                grid-template-columns: repeat(25, 18px);
+                grid-template-rows: repeat(25, 18px);
+            }
+            
+            .grid-cell {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .component-list {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Math City 2025</h1>
+            <div class="game-info">
+                <div class="money-display">Money: $<span id="money">1000</span></div>
+                <div class="math-question" id="current-question">Titan Business Pros LLC makes math fun!</div>
+                <div class="game-controls">
+                    <button class="control-btn" id="delete-btn">Delete Mode: OFF</button>
+                    <button class="control-btn move-mode" id="move-btn">Move Mode: OFF</button>
+                    <button class="control-btn save-game" id="save-btn">Save Game</button>
+                    <button class="control-btn" id="load-btn">Load Game</button>
+                    <button class="control-btn" id="help-btn">How to Play</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="game-area">
+            <div class="components-panel">
+                <div class="components-header">
+                    <h2>City Components</h2>
+                    <div class="component-cost">Each item costs $100</div>
+                </div>
+                
+                <div class="category-tabs">
+                    <button class="category-tab active" data-category="infrastructure">Infrastructure</button>
+                    <button class="category-tab" data-category="residential">Residential</button>
+                    <button class="category-tab" data-category="services">Services</button>
+                    <button class="category-tab" data-category="education">Education</button>
+                    <button class="category-tab" data-category="commercial">Commercial</button>
+                    <button class="category-tab" data-category="farm">Farm</button>
+                    <button class="category-tab" data-category="recreation">Recreation</button>
+                    <button class="category-tab" data-category="community">Community</button>
+                    <button class="category-tab" data-category="people">People</button>
+                </div>
+                
+                <div class="components-container">
+                    <!-- Infrastructure Category -->
+                    <div class="component-category" data-category="infrastructure">
+                        <div class="category-title">Infrastructure</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="road">
+                                <div class="component-icon">🛣️</div>
+                                <div class="component-name">Road</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="powerline">
+                                <div class="component-icon">⚡</div>
+                                <div class="component-name">Power Line</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="powerplant">
+                                <div class="component-icon">🏭</div>
+                                <div class="component-name">Power Plant</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="water">
+                                <div class="component-icon">💧</div>
+                                <div class="component-name">Water Pipe</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="fence">
+                                <div class="component-icon">🚧</div>
+                                <div class="component-name">Fence</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="bridge">
+                                <div class="component-icon">🌉</div>
+                                <div class="component-name">Bridge</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="tunnel">
+                                <div class="component-icon">🚇</div>
+                                <div class="component-name">Tunnel</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="lighthouse">
+                                <div class="component-icon">🗼</div>
+                                <div class="component-name">Lighthouse</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="solarpanel">
+                                <div class="component-icon">☀️</div>
+                                <div class="component-name">Solar Panel</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="windturbine">
+                                <div class="component-icon">🌬️</div>
+                                <div class="component-name">Wind Turbine</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Residential Category -->
+                    <div class="component-category" data-category="residential" style="display: none;">
+                        <div class="category-title">Residential</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="house">
+                                <div class="component-icon">🏠</div>
+                                <div class="component-name">House</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="apartment">
+                                <div class="component-icon">🏢</div>
+                                <div class="component-name">Apartment</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="condo">
+                                <div class="component-icon">🏘️</div>
+                                <div class="component-name">Condo</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="mansion">
+                                <div class="component-icon">🏰</div>
+                                <div class="component-name">Mansion</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="cottage">
+                                <div class="component-icon">🏡</div>
+                                <div class="component-name">Cottage</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="townhouse">
+                                <div class="component-icon">🏠</div>
+                                <div class="component-name">Townhouse</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="skyscraper">
+                                <div class="component-icon">🏙️</div>
+                                <div class="component-name">Skyscraper</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="villa">
+                                <div class="component-icon">🏠</div>
+                                <div class="component-name">Villa</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Services Category -->
+                    <div class="component-category" data-category="services" style="display: none;">
+                        <div class="category-title">Services</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="policestation">
+                                <div class="component-icon">🚓</div>
+                                <div class="component-name">Police Station</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="firestation">
+                                <div class="component-icon">🚒</div>
+                                <div class="component-name">Fire Station</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="hospital">
+                                <div class="component-icon">🏥</div>
+                                <div class="component-name">Hospital</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="library">
+                                <div class="component-icon">📚</div>
+                                <div class="component-name">Library</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="postoffice">
+                                <div class="component-icon">📮</div>
+                                <div class="component-name">Post Office</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="bank">
+                                <div class="component-icon">🏦</div>
+                                <div class="component-name">Bank</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="ambulancestation">
+                                <div class="component-icon">🚑</div>
+                                <div class="component-name">Ambulance Station</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Education Category -->
+                    <div class="component-category" data-category="education" style="display: none;">
+                        <div class="category-title">Education</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="gradeschool">
+                                <div class="component-icon">📚</div>
+                                <div class="component-name">Grade School</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="middleschool">
+                                <div class="component-icon">🏫</div>
+                                <div class="component-name">Middle School</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="highschool">
+                                <div class="component-icon">🎓</div>
+                                <div class="component-name">High School</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="computercollege">
+                                <div class="component-icon">💻</div>
+                                <div class="component-name">Computer College</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="artcollege">
+                                <div class="component-icon">🎨</div>
+                                <div class="component-name">Art College</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="musiccollege">
+                                <div class="component-icon">🎵</div>
+                                <div class="component-name">Music College</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="videogamecollege">
+                                <div class="component-icon">🎮</div>
+                                <div class="component-name">Video Game College</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="arcade">
+                                <div class="component-icon">👾</div>
+                                <div class="component-name">Arcade</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="university">
+                                <div class="component-icon">🏛️</div>
+                                <div class="component-name">University</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="kindergarten">
+                                <div class="component-icon">🧒</div>
+                                <div class="component-name">Kindergarten</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="researchlab">
+                                <div class="component-icon">🔬</div>
+                                <div class="component-name">Research Lab</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commercial Category -->
+                    <div class="component-category" data-category="commercial" style="display: none;">
+                        <div class="category-title">Commercial</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="store">
+                                <div class="component-icon">🏪</div>
+                                <div class="component-name">Store</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="mall">
+                                <div class="component-icon">🛍️</div>
+                                <div class="component-name">Shopping Mall</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="office">
+                                <div class="component-icon">🏢</div>
+                                <div class="component-name">Office Building</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="factory">
+                                <div class="component-icon">🏭</div>
+                                <div class="component-name">Factory</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="restaurant">
+                                <div class="component-icon">🍽️</div>
+                                <div class="component-name">Restaurant</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="hotel">
+                                <div class="component-icon">🏨</div>
+                                <div class="component-name">Hotel</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="supermarket">
+                                <div class="component-icon">🛒</div>
+                                <div class="component-name">Supermarket</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="coffeeshop">
+                                <div class="component-icon">☕</div>
+                                <div class="component-name">Coffee Shop</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="bakery">
+                                <div class="component-icon">🍞</div>
+                                <div class="component-name">Bakery</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="florist">
+                                <div class="component-icon">💐</div>
+                                <div class="component-name">Florist</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Farm Category -->
+                    <div class="component-category" data-category="farm" style="display: none;">
+                        <div class="category-title">Farm & Agriculture</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="barn">
+                                <div class="component-icon">🚜</div>
+                                <div class="component-name">Barn</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="cow">
+                                <div class="component-icon">🐄</div>
+                                <div class="component-name">Cow</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="pig">
+                                <div class="component-icon">🐖</div>
+                                <div class="component-name">Pig</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="chicken">
+                                <div class="component-icon">🐔</div>
+                                <div class="component-name">Chicken</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="sheep">
+                                <div class="component-icon">🐑</div>
+                                <div class="component-name">Sheep</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="horse">
+                                <div class="component-icon">🐎</div>
+                                <div class="component-name">Horse</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="goat">
+                                <div class="component-icon">🐐</div>
+                                <div class="component-name">Goat</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="duck">
+                                <div class="component-icon">🦆</div>
+                                <div class="component-name">Duck</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="rabbit">
+                                <div class="component-icon">🐇</div>
+                                <div class="component-name">Rabbit</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="turkey">
+                                <div class="component-icon">🦃</div>
+                                <div class="component-name">Turkey</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="appletree">
+                                <div class="component-icon">🍎</div>
+                                <div class="component-name">Apple Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="orangetree">
+                                <div class="component-icon">🍊</div>
+                                <div class="component-name">Orange Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="peartree">
+                                <div class="component-icon">🍐</div>
+                                <div class="component-name">Pear Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="peachtree">
+                                <div class="component-icon">🍑</div>
+                                <div class="component-name">Peach Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="cherrytree">
+                                <div class="component-icon">🍒</div>
+                                <div class="component-name">Cherry Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="lemontree">
+                                <div class="component-icon">🍋</div>
+                                <div class="component-name">Lemon Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="pinetree">
+                                <div class="component-icon">🌲</div>
+                                <div class="component-name">Pine Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="palmtree">
+                                <div class="component-icon">🌴</div>
+                                <div class="component-name">Palm Tree</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="tractor">
+                                <div class="component-icon">🚜</div>
+                                <div class="component-name">Tractor</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="scarecrow">
+                                <div class="component-icon">🌾</div>
+                                <div class="component-name">Scarecrow</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recreation Category -->
+                    <div class="component-category" data-category="recreation" style="display: none;">
+                        <div class="category-title">Recreation</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="park">
+                                <div class="component-icon">🏞️</div>
+                                <div class="component-name">Park</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="stadium">
+                                <div class="component-icon">🏟️</div>
+                                <div class="component-name">Stadium</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="zoo">
+                                <div class="component-icon">🐯</div>
+                                <div class="component-name">Zoo</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="pool">
+                                <div class="component-icon">🏊</div>
+                                <div class="component-name">Swimming Pool</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="cinema">
+                                <div class="component-icon">🎬</div>
+                                <div class="component-name">Cinema</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="gym">
+                                <div class="component-icon">💪</div>
+                                <div class="component-name">Gym</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="playground">
+                                <div class="component-icon">🎪</div>
+                                <div class="component-name">Playground</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="museum">
+                                <div class="component-icon">🏛️</div>
+                                <div class="component-name">Museum</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Community Category -->
+                    <div class="component-category" data-category="community" style="display: none;">
+                        <div class="category-title">Community</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="church">
+                                <div class="component-icon">⛪</div>
+                                <div class="component-name">Church</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="mosque">
+                                <div class="component-icon">🕌</div>
+                                <div class="component-name">Mosque</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="temple">
+                                <div class="component-icon">🛕</div>
+                                <div class="component-name">Temple</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="communitycenter">
+                                <div class="component-icon">🏛️</div>
+                                <div class="component-name">Community Center</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="fountain">
+                                <div class="component-icon">⛲</div>
+                                <div class="component-name">Fountain</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="monument">
+                                <div class="component-icon">🗽</div>
+                                <div class="component-name">Monument</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="airport">
+                                <div class="component-icon">✈️</div>
+                                <div class="component-name">Airport</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="trainstation">
+                                <div class="component-icon">🚉</div>
+                                <div class="component-name">Train Station</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="busstation">
+                                <div class="component-icon">🚌</div>
+                                <div class="component-name">Bus Station</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="harbor">
+                                <div class="component-icon">⚓</div>
+                                <div class="component-name">Harbor</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="dam">
+                                <div class="component-icon">💧</div>
+                                <div class="component-name">Dam</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="observatory">
+                                <div class="component-icon">🔭</div>
+                                <div class="component-name">Observatory</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="cityhall">
+                                <div class="component-icon">🏢</div>
+                                <div class="component-name">City Hall</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="courthouse">
+                                <div class="component-icon">⚖️</div>
+                                <div class="component-name">Court House</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- People Category -->
+                    <div class="component-category" data-category="people" style="display: none;">
+                        <div class="category-title">People</div>
+                        <div class="component-list">
+                            <div class="component-item" draggable="true" data-type="policeman">
+                                <div class="component-icon">👮</div>
+                                <div class="component-name">Police Officer</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="firefighter">
+                                <div class="component-icon">👨‍🚒</div>
+                                <div class="component-name">Firefighter</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="doctor">
+                                <div class="component-icon">👨‍⚕️</div>
+                                <div class="component-name">Doctor</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="teacher">
+                                <div class="component-icon">👩‍🏫</div>
+                                <div class="component-name">Teacher</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="chef">
+                                <div class="component-icon">👨‍🍳</div>
+                                <div class="component-name">Chef</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="farmer">
+                                <div class="component-icon">👨‍🌾</div>
+                                <div class="component-name">Farmer</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="engineer">
+                                <div class="component-icon">👨‍🔧</div>
+                                <div class="component-name">Engineer</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="student">
+                                <div class="component-icon">👨‍🎓</div>
+                                <div class="component-name">Student</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="child">
+                                <div class="component-icon">👦</div>
+                                <div class="component-name">Child</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="elder">
+                                <div class="component-icon">👴</div>
+                                <div class="component-name">Elder</div>
+                                <div class="component-cost">$100</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="city-grid-container">
+                <div class="city-header">
+                    <h2>Your City</h2>
+                    <div class="city-stats">
+                        <div class="stat">Buildings: <span id="building-count">0</span></div>
+                        <div class="stat">Population: <span id="population">0</span></div>
+                        <div class="stat">People: <span id="people-count">0</span></div>
+                    </div>
+                </div>
+                <div class="city-grid-wrapper">
+                    <div class="city-grid" id="city-grid">
+                        <!-- Grid cells will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="math-modal">
+        <div class="modal-content">
+            <h2>Math Question</h2>
+            <p>Answer correctly to earn $100 for your city!</p>
+            <div class="math-problem" id="math-problem">3 + 5 = ?</div>
+            <input type="number" class="answer-input" id="answer-input" placeholder="Your answer" autofocus>
+            <button class="submit-btn" id="submit-answer">Submit Answer</button>
+            <div class="message" id="message"></div>
+        </div>
+    </div>
+    
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <h2>How to Play</h2>
+            <div style="text-align: left; line-height: 1.6; margin-bottom: 20px;">
+                <p><strong>Goal:</strong> Build your dream city by answering math questions!</p>
+                <p><strong>Earning Money:</strong> Answer math questions correctly to earn $100.</p>
+                <p><strong>Building:</strong> Drag and drop components onto the grid. Each costs $100.</p>
+                <p><strong>People:</strong> Place people manually from the People category.</p>
+                <p><strong></strong></p>
+                <p><strong>Deleting:</strong> Turn on Delete Mode and click on a building to remove it and get a refund.</p>
+                <p><strong>Saving:</strong> Use the Save Game button to save your progress.</p>
+                <p><strong>Loading:</strong> Use the Load Game button to restore your saved city.</p>
+                <p><strong>Categories:</strong> Use the tabs to browse different building categories.</p>
+            </div>
+            <button class="submit-btn" id="close-help">Got It!</button>
+        </div>
+    </div>
+    
+    <div class="save-notification" id="save-notification">
+        Game saved successfully!
+    </div>
+    
+    <div class="movement-timer" id="movement-timer">
+        Movement in progress: <span id="timer-display">0s</span>
+    </div>
+
+    <script>
+        // Game state
+        let money = 1000;
+        let draggedComponent = null;
+        let currentQuestion = null;
+        let correctAnswer = null;
+        let deleteMode = false;
+        let moveMode = false;
+        let selectedEntity = null;
+        let buildingCount = 0;
+        let population = 0;
+        let peopleCount = 0;
+        let movementTimer = null;
+        let movementStartTime = null;
+        
+        // Component icons mapping
+        const componentIcons = {
+            'road': '🛣️',
+            'powerline': '⚡',
+            'powerplant': '🏭',
+            'water': '💧',
+            'fence': '🚧',
+            'bridge': '🌉',
+            'tunnel': '🚇',
+            'lighthouse': '🗼',
+            'solarpanel': '☀️',
+            'windturbine': '🌬️',
+            'house': '🏠',
+            'apartment': '🏢',
+            'condo': '🏘️',
+            'mansion': '🏰',
+            'cottage': '🏡',
+            'townhouse': '🏠',
+            'skyscraper': '🏙️',
+            'villa': '🏠',
+            'policestation': '🚓',
+            'firestation': '🚒',
+            'hospital': '🏥',
+            'library': '📚',
+            'postoffice': '📮',
+            'bank': '🏦',
+            'ambulancestation': '🚑',
+            'gradeschool': '📚',
+            'middleschool': '🏫',
+            'highschool': '🎓',
+            'computercollege': '💻',
+            'artcollege': '🎨',
+            'musiccollege': '🎵',
+            'videogamecollege': '🎮',
+            'arcade': '👾',
+            'university': '🏛️',
+            'kindergarten': '🧒',
+            'researchlab': '🔬',
+            'store': '🏪',
+            'mall': '🛍️',
+            'office': '🏢',
+            'factory': '🏭',
+            'restaurant': '🍽️',
+            'hotel': '🏨',
+            'supermarket': '🛒',
+            'coffeeshop': '☕',
+            'bakery': '🍞',
+            'florist': '💐',
+            'barn': '🚜',
+            'cow': '🐄',
+            'pig': '🐖',
+            'chicken': '🐔',
+            'sheep': '🐑',
+            'horse': '🐎',
+            'goat': '🐐',
+            'duck': '🦆',
+            'rabbit': '🐇',
+            'turkey': '🦃',
+            'appletree': '🍎',
+            'orangetree': '🍊',
+            'peartree': '🍐',
+            'peachtree': '🍑',
+            'cherrytree': '🍒',
+            'lemontree': '🍋',
+            'pinetree': '🌲',
+            'palmtree': '🌴',
+            'tractor': '🚜',
+            'scarecrow': '🌾',
+            'park': '🏞️',
+            'stadium': '🏟️',
+            'zoo': '🐯',
+            'pool': '🏊',
+            'cinema': '🎬',
+            'gym': '💪',
+            'playground': '🎪',
+            'museum': '🏛️',
+            'church': '⛪',
+            'mosque': '🕌',
+            'temple': '🛕',
+            'communitycenter': '🏛️',
+            'fountain': '⛲',
+            'monument': '🗽',
+            'airport': '✈️',
+            'trainstation': '🚉',
+            'busstation': '🚌',
+            'harbor': '⚓',
+            'dam': '💧',
+            'observatory': '🔭',
+            'cityhall': '🏢',
+            'courthouse': '⚖️',
+            'policeman': '👮',
+            'firefighter': '👨‍🚒',
+            'doctor': '👨‍⚕️',
+            'teacher': '👩‍🏫',
+            'chef': '👨‍🍳',
+            'farmer': '👨‍🌾',
+            'engineer': '👨‍🔧',
+            'student': '👨‍🎓',
+            'child': '👦',
+            'elder': '👴'
+        };
+        
+        // Animals that can be moved
+        const movableAnimals = ['cow', 'pig', 'chicken', 'sheep', 'horse', 'goat', 'duck', 'rabbit', 'turkey'];
+        // People that can be moved
+        const movablePeople = ['policeman', 'firefighter', 'doctor', 'teacher', 'chef', 'farmer', 'engineer', 'student', 'child', 'elder'];
+        
+        // Initialize the game
+        function initGame() {
+            createGrid();
+            setupDragAndDrop();
+            setupEventListeners();
+            updateMoneyDisplay();
+            updateStats();
+            
+            // Check for saved game on load
+            checkForSavedGame();
+        }
+        
+        // Create the city grid
+        function createGrid() {
+            const grid = document.getElementById('city-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 1600; i++) { // 40x40 grid
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = i;
+                
+                cell.addEventListener('dragover', handleDragOver);
+                cell.addEventListener('dragenter', handleDragEnter);
+                cell.addEventListener('dragleave', handleDragLeave);
+                cell.addEventListener('drop', handleDrop);
+                cell.addEventListener('click', handleCellClick);
+                
+                // Add delete overlay
+                const deleteOverlay = document.createElement('div');
+                deleteOverlay.className = 'delete-overlay';
+                deleteOverlay.textContent = '🗑️';
+                deleteOverlay.addEventListener('click', handleDelete);
+                cell.appendChild(deleteOverlay);
+                
+                grid.appendChild(cell);
+            }
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Delete mode button
+            document.getElementById('delete-btn').addEventListener('click', toggleDeleteMode);
+            
+            // Move mode button
+            document.getElementById('move-btn').addEventListener('click', toggleMoveMode);
+            
+            // Save and load buttons
+            document.getElementById('save-btn').addEventListener('click', saveGame);
+            document.getElementById('load-btn').addEventListener('click', loadGame);
+            
+            // Help button
+            document.getElementById('help-btn').addEventListener('click', showHelp);
+            document.getElementById('close-help').addEventListener('click', hideHelp);
+            
+            // Math modal
+            document.getElementById('submit-answer').addEventListener('click', checkAnswer);
+            document.getElementById('answer-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+            
+            // Category tabs
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.category-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Show corresponding category
+                    const category = this.dataset.category;
+                    document.querySelectorAll('.component-category').forEach(cat => {
+                        cat.style.display = 'none';
+                    });
+                    document.querySelector(`.component-category[data-category="${category}"]`).style.display = 'block';
+                });
+            });
+        }
+        
+        // Check for saved game on page load
+        function checkForSavedGame() {
+            if (localStorage.getItem('cityBuilderGame')) {
+                if (confirm('A saved game was found. Would you like to load it?')) {
+                    loadGame();
+                }
+            }
+        }
+        
+        // Save game to local storage
+        function saveGame() {
+            const gameState = {
+                money: money,
+                buildingCount: buildingCount,
+                population: population,
+                peopleCount: peopleCount,
+                buildings: [],
+                people: [],
+                animals: []
+            };
+            
+            // Collect all buildings from the grid
+            const gridCells = document.querySelectorAll('.grid-cell');
+            gridCells.forEach(cell => {
+                const buildingType = cell.getAttribute('data-building-type');
+                if (buildingType) {
+                    gameState.buildings.push({
+                        index: parseInt(cell.dataset.index),
+                        type: buildingType
+                    });
+                }
+                
+                // Collect people
+                const personElement = cell.querySelector('.person');
+                if (personElement) {
+                    gameState.people.push({
+                        index: parseInt(cell.dataset.index),
+                        type: personElement.getAttribute('data-person-type')
+                    });
+                }
+                
+                // Collect animals
+                const animalElement = cell.querySelector('.animal');
+                if (animalElement) {
+                    gameState.animals.push({
+                        index: parseInt(cell.dataset.index),
+                        type: animalElement.getAttribute('data-animal-type')
+                    });
+                }
+            });
+            
+            // Save to local storage
+            localStorage.setItem('cityBuilderGame', JSON.stringify(gameState));
+            
+            // Show save notification
+            const notification = document.getElementById('save-notification');
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+            
+            document.getElementById('current-question').textContent = 'Game saved successfully!';
+        }
+        
+        // Load game from local storage
+        function loadGame() {
+            const savedGame = localStorage.getItem('cityBuilderGame');
+            if (!savedGame) {
+                alert('No saved game found!');
+                return;
+            }
+            
+            const gameState = JSON.parse(savedGame);
+            
+            // Reset the grid
+            clearGrid();
+            
+            // Restore game state
+            money = gameState.money;
+            buildingCount = gameState.buildingCount;
+            population = gameState.population;
+            peopleCount = gameState.peopleCount;
+            
+            // Restore buildings
+            gameState.buildings.forEach(building => {
+                const cell = document.querySelector(`.grid-cell[data-index="${building.index}"]`);
+                if (cell) {
+                    placeBuildingWithoutQuestion(cell, building.type);
+                }
+            });
+            
+            // Restore people
+            gameState.people.forEach(person => {
+                const cell = document.querySelector(`.grid-cell[data-index="${person.index}"]`);
+                if (cell) {
+                    createPerson(cell, person.type);
+                }
+            });
+            
+            // Restore animals
+            gameState.animals.forEach(animal => {
+                const cell = document.querySelector(`.grid-cell[data-index="${animal.index}"]`);
+                if (cell) {
+                    createAnimal(cell, animal.type);
+                }
+            });
+            
+            updateMoneyDisplay();
+            updateStats();
+            
+            document.getElementById('current-question').textContent = 'Game loaded successfully!';
+        }
+        
+        // Clear the grid
+        function clearGrid() {
+            const gridCells = document.querySelectorAll('.grid-cell');
+            gridCells.forEach(cell => {
+                cell.classList.remove('occupied');
+                cell.removeAttribute('data-building-type');
+                // Remove any building elements
+                const building = cell.querySelector('.building');
+                if (building) {
+                    building.remove();
+                }
+                // Remove any people
+                const people = cell.querySelectorAll('.person');
+                people.forEach(person => person.remove());
+                // Remove any animals
+                const animals = cell.querySelectorAll('.animal');
+                animals.forEach(animal => animal.remove());
+                // Remove any road/fence classes
+                cell.className = 'grid-cell';
+                
+                // Re-add delete overlay
+                const deleteOverlay = document.createElement('div');
+                deleteOverlay.className = 'delete-overlay';
+                deleteOverlay.textContent = '🗑️';
+                deleteOverlay.addEventListener('click', handleDelete);
+                cell.appendChild(deleteOverlay);
+            });
+        }
+        
+        // Place a building without asking a math question (for loading)
+        function placeBuildingWithoutQuestion(cell, componentType) {
+            // Mark cell as occupied
+            cell.classList.add('occupied');
+            cell.setAttribute('data-building-type', componentType);
+            
+            // Create building element
+            const building = document.createElement('div');
+            building.className = 'building';
+            
+            // Special handling for roads and fences
+            if (componentType === 'road' || componentType === 'fence') {
+                updateRoadOrFenceAppearance(cell, componentType);
+            } else {
+                building.textContent = componentIcons[componentType];
+                building.title = componentType.charAt(0).toUpperCase() + componentType.slice(1);
+                cell.appendChild(building);
+                
+                // Check if this is an animal and make it movable
+                if (movableAnimals.includes(componentType)) {
+                    createAnimal(cell, componentType);
+                }
+            }
+            
+            // Update adjacent roads and fences
+            updateAdjacentConnections(cell);
+            
+            // Re-add delete overlay
+            const deleteOverlay = document.createElement('div');
+            deleteOverlay.className = 'delete-overlay';
+            deleteOverlay.textContent = '🗑️';
+            deleteOverlay.addEventListener('click', handleDelete);
+            cell.appendChild(deleteOverlay);
+        }
+        
+        // Create a person element
+        function createPerson(cell, personType) {
+            const person = document.createElement('div');
+            person.className = 'person';
+            person.textContent = componentIcons[personType];
+            person.setAttribute('data-person-type', personType);
+            person.addEventListener('click', handleEntityClick);
+            cell.appendChild(person);
+            peopleCount++;
+            updateStats();
+        }
+        
+        // Create an animal element
+        function createAnimal(cell, animalType) {
+            const animal = document.createElement('div');
+            animal.className = 'animal';
+            animal.textContent = componentIcons[animalType];
+            animal.setAttribute('data-animal-type', animalType);
+            animal.addEventListener('click', handleEntityClick);
+            cell.appendChild(animal);
+        }
+        
+        // Set up drag and drop functionality
+        function setupDragAndDrop() {
+            const components = document.querySelectorAll('.component-item');
+            
+            components.forEach(component => {
+                component.addEventListener('dragstart', handleDragStart);
+                component.addEventListener('dragend', handleDragEnd);
+            });
+        }
+        
+        // Toggle delete mode
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            moveMode = false; // Disable move mode when enabling delete mode
+            const deleteBtn = document.getElementById('delete-btn');
+            const moveBtn = document.getElementById('move-btn');
+            
+            if (deleteMode) {
+                deleteBtn.textContent = 'Delete Mode: ON';
+                deleteBtn.classList.add('delete-mode');
+                moveBtn.textContent = 'Move Mode: OFF';
+                moveBtn.classList.remove('move-mode');
+                document.getElementById('current-question').textContent = 'Click on buildings to delete them and get a refund.';
+            } else {
+                deleteBtn.textContent = 'Delete Mode: OFF';
+                deleteBtn.classList.remove('delete-mode');
+                document.getElementById('current-question').textContent = 'Answer math questions to earn money for your city!';
+            }
+            
+            // Clear any selected entity
+            clearSelectedEntity();
+        }
+        
+        // Toggle move mode
+        function toggleMoveMode() {
+            moveMode = !moveMode;
+            deleteMode = false; // Disable delete mode when enabling move mode
+            const moveBtn = document.getElementById('move-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            
+            if (moveMode) {
+                moveBtn.textContent = 'Move Mode: ON';
+                moveBtn.classList.add('move-mode');
+                deleteBtn.textContent = 'Delete Mode: OFF';
+                deleteBtn.classList.remove('delete-mode');
+                document.getElementById('current-question').textContent = 'Move Mode Does Not Function.';
+            } else {
+                moveBtn.textContent = 'Move Mode: OFF';
+                moveBtn.classList.remove('move-mode');
+                document.getElementById('current-question').textContent = 'Answer math questions to earn money for your city!';
+                clearSelectedEntity();
+            }
+        }
+        
+        // Handle entity click for moving
+        function handleEntityClick(e) {
+            if (!moveMode) return;
+            
+            e.stopPropagation();
+            const entity = this;
+            
+            // Clear previous selection
+            clearSelectedEntity();
+            
+            // Select this entity
+            selectedEntity = entity;
+            entity.style.boxShadow = '0 0 0 2px #76ff03';
+            entity.classList.add('moving');
+            
+            // Add move indicator
+            const moveIndicator = document.createElement('div');
+            moveIndicator.className = 'move-indicator';
+            entity.appendChild(moveIndicator);
+            
+            document.getElementById('current-question').textContent = 'Entity selected! Click where you want it to move.';
+        }
+        
+        // Clear selected entity
+        function clearSelectedEntity() {
+            if (selectedEntity) {
+                selectedEntity.style.boxShadow = '';
+                selectedEntity.classList.remove('moving');
+                const indicator = selectedEntity.querySelector('.move-indicator');
+                if (indicator) indicator.remove();
+                selectedEntity = null;
+            }
+        }
+        
+        // Handle cell click for moving entities
+        function handleCellClick(e) {
+            if (moveMode && selectedEntity) {
+                e.stopPropagation();
+                
+                // Check if cell is empty
+                if (this.classList.contains('occupied') || 
+                    this.querySelector('.person') || 
+                    this.querySelector('.animal')) {
+                    alert("This space is occupied! Choose an empty cell.");
+                    return;
+                }
+                
+                // Get the entity type
+                const entityType = selectedEntity.getAttribute('data-person-type') || 
+                                  selectedEntity.getAttribute('data-animal-type');
+                const oldCell = selectedEntity.parentElement;
+                const newCell = this;
+                
+                // Calculate distance (number of grid squares)
+                const oldIndex = parseInt(oldCell.dataset.index);
+                const newIndex = parseInt(newCell.dataset.index);
+                
+                const gridSize = 40;
+                const oldRow = Math.floor(oldIndex / gridSize);
+                const oldCol = oldIndex % gridSize;
+                const newRow = Math.floor(newIndex / gridSize);
+                const newCol = newIndex % gridSize;
+                
+                const distance = Math.abs(newRow - oldRow) + Math.abs(newCol - oldCol);
+                
+                // Calculate time (1 minute per grid square)
+                const totalTime = distance * 60000; // 1 minute per square in milliseconds
+                
+                // Start the movement
+                startMovement(selectedEntity, oldCell, newCell, entityType, totalTime);
+            }
+        }
+        
+        // Start the movement process
+        function startMovement(entity, oldCell, newCell, entityType, totalTime) {
+            // Remove from old cell
+            entity.remove();
+            
+            // Add to new cell with moving class
+            entity.classList.add('moving');
+            newCell.appendChild(entity);
+            
+            // Show movement timer
+            const timerElement = document.getElementById('movement-timer');
+            const timerDisplay = document.getElementById('timer-display');
+            timerElement.style.display = 'block';
+            
+            movementStartTime = Date.now();
+            const endTime = movementStartTime + totalTime;
+            
+            // Update timer display
+            movementTimer = setInterval(() => {
+                const currentTime = Date.now();
+                const timeLeft = endTime - currentTime;
+                
+                if (timeLeft <= 0) {
+                    // Movement complete
+                    clearInterval(movementTimer);
+                    entity.classList.remove('moving');
+                    timerElement.style.display = 'none';
+                    
+                    document.getElementById('current-question').textContent = `${entityType} has arrived at the destination!`;
+                    
+                    // Auto-save
+                    saveGame();
+                } else {
+                    // Update timer display
+                    const secondsLeft = Math.ceil(timeLeft / 1000);
+                    const minutes = Math.floor(secondsLeft / 60);
+                    const seconds = secondsLeft % 60;
+                    timerDisplay.textContent = `${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+            
+            document.getElementById('current-question').textContent = `${entityType} is moving to the new location!`;
+        }
+        
+        // Show help modal
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+        
+        // Hide help modal
+        function hideHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+        
+        // Handle delete building
+        function handleDelete(e) {
+            e.stopPropagation();
+            if (!deleteMode) return;
+            
+            const cell = this.parentElement;
+            
+            // Refund money
+            money += 100;
+            updateMoneyDisplay();
+            
+            // Update stats
+            buildingCount--;
+            if (cell.getAttribute('data-building-type') === 'house' || 
+                cell.getAttribute('data-building-type') === 'apartment' || 
+                cell.getAttribute('data-building-type') === 'condo' || 
+                cell.getAttribute('data-building-type') === 'mansion') {
+                population = Math.max(0, population - Math.floor(Math.random() * 5) - 1);
+            }
+            updateStats();
+            
+            // Remove building
+            cell.classList.remove('occupied');
+            cell.removeAttribute('data-building-type');
+            cell.innerHTML = '<div class="delete-overlay">🗑️</div>';
+            cell.querySelector('.delete-overlay').addEventListener('click', handleDelete);
+            
+            // Update adjacent roads and fences
+            updateAdjacentConnections(cell);
+            
+            document.getElementById('current-question').textContent = 'Building deleted! You received a $100 refund.';
+            
+            // Auto-save after deletion
+            saveGame();
+        }
+        
+        // Drag start handler
+        function handleDragStart(e) {
+            if (deleteMode || moveMode) {
+                e.preventDefault();
+                return;
+            }
+            
+            draggedComponent = this;
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.type);
+        }
+        
+        // Drag end handler
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            draggedComponent = null;
+        }
+        
+        // Drag over handler
+        function handleDragOver(e) {
+            if (deleteMode || moveMode) {
+                e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+        }
+        
+        // Drag enter handler
+        function handleDragEnter(e) {
+            if (deleteMode || moveMode) {
+                e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+        
+        // Drag leave handler
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+        
+        // Drop handler
+        function handleDrop(e) {
+            if (deleteMode || moveMode) {
+                e.preventDefault();
+                return;
+            }
+            
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (money < 100) {
+                alert("You don't have enough money! Answer a math question to earn more.");
+                return;
+            }
+            
+            const componentType = e.dataTransfer.getData('text/plain');
+            
+            // Check if cell is already occupied
+            if (this.classList.contains('occupied')) {
+                alert("This space is already occupied!");
+                return;
+            }
+            
+            // Show math question modal
+            showMathQuestion(componentType, this);
+        }
+        
+        // Show math question modal
+        function showMathQuestion(componentType, cell) {
+            currentQuestion = generateMathQuestion();
+            document.getElementById('math-problem').textContent = currentQuestion.problem;
+            correctAnswer = currentQuestion.answer;
+            
+            const modal = document.getElementById('math-modal');
+            modal.style.display = 'flex';
+            
+            document.getElementById('answer-input').value = '';
+            document.getElementById('message').textContent = '';
+            document.getElementById('answer-input').focus();
+            
+            // Store the component and cell for later use
+            modal.dataset.componentType = componentType;
+            modal.dataset.cell = JSON.stringify({
+                index: cell.dataset.index,
+                element: cell
+            });
+        }
+        
+        // Generate a random math question for 4th grade level
+        function generateMathQuestion() {
+            const operations = ['+', '-', '*', '/'];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            
+            let num1, num2, problem, answer;
+            
+            switch(operation) {
+                case '+':
+                    num1 = Math.floor(Math.random() * 100) + 1;
+                    num2 = Math.floor(Math.random() * 100) + 1;
+                    problem = `${num1} + ${num2} = ?`;
+                    answer = num1 + num2;
+                    break;
+                case '-':
+                    num1 = Math.floor(Math.random() * 100) + 50;
+                    num2 = Math.floor(Math.random() * 50) + 1;
+                    problem = `${num1} - ${num2} = ?`;
+                    answer = num1 - num2;
+                    break;
+                case '*':
+                    num1 = Math.floor(Math.random() * 12) + 1;
+                    num2 = Math.floor(Math.random() * 12) + 1;
+                    problem = `${num1} × ${num2} = ?`;
+                    answer = num1 * num2;
+                    break;
+                case '/':
+                    num2 = Math.floor(Math.random() * 11) + 1;
+                    answer = Math.floor(Math.random() * 11) + 1;
+                    num1 = num2 * answer;
+                    problem = `${num1} ÷ ${num2} = ?`;
+                    break;
+            }
+            
+            return { problem, answer };
+        }
+        
+        // Check answer and handle result
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer-input').value);
+            const messageEl = document.getElementById('message');
+            
+            if (isNaN(userAnswer)) {
+                messageEl.textContent = "Please enter a valid number!";
+                messageEl.className = "message error";
+                return;
+            }
+            
+            if (userAnswer === correctAnswer) {
+                messageEl.textContent = "Correct! You earned $100!";
+                messageEl.className = "message success";
+                
+                // Add money
+                money += 100;
+                updateMoneyDisplay();
+                
+                // Place the building after a short delay
+                setTimeout(placeBuilding, 1000);
+            } else {
+                messageEl.textContent = `Incorrect. The right answer was ${correctAnswer}. Try again!`;
+                messageEl.className = "message error";
+                
+                // Clear input and focus
+                document.getElementById('answer-input').value = '';
+                document.getElementById('answer-input').focus();
+            }
+        }
+        
+        // Place the building on the grid
+        function placeBuilding() {
+            const modal = document.getElementById('math-modal');
+            const componentType = modal.dataset.componentType;
+            const cellData = JSON.parse(modal.dataset.cell);
+            const cell = document.querySelector(`.grid-cell[data-index="${cellData.index}"]`);
+            
+            // Deduct money
+            money -= 100;
+            updateMoneyDisplay();
+            
+            // Update stats
+            buildingCount++;
+            if (componentType === 'house' || componentType === 'apartment' || 
+                componentType === 'condo' || componentType === 'mansion') {
+                population += Math.floor(Math.random() * 10) + 1;
+            }
+            updateStats();
+            
+            // Mark cell as occupied
+            cell.classList.add('occupied');
+            cell.setAttribute('data-building-type', componentType);
+            
+            // Create building element
+            const building = document.createElement('div');
+            building.className = 'building';
+            
+            // Special handling for roads and fences
+            if (componentType === 'road' || componentType === 'fence') {
+                updateRoadOrFenceAppearance(cell, componentType);
+            } else {
+                building.textContent = componentIcons[componentType];
+                building.title = componentType.charAt(0).toUpperCase() + componentType.slice(1);
+                cell.appendChild(building);
+                
+                // Check if this is an animal and make it movable
+                if (movableAnimals.includes(componentType)) {
+                    createAnimal(cell, componentType);
+                }
+                
+                // Check if this is a person and make it movable
+                if (movablePeople.includes(componentType)) {
+                    createPerson(cell, componentType);
+                }
+            }
+            
+            // Update adjacent roads and fences
+            updateAdjacentConnections(cell);
+            
+            // Re-add delete overlay
+            const deleteOverlay = document.createElement('div');
+            deleteOverlay.className = 'delete-overlay';
+            deleteOverlay.textContent = '🗑️';
+            deleteOverlay.addEventListener('click', handleDelete);
+            cell.appendChild(deleteOverlay);
+            
+            // Close modal
+            modal.style.display = 'none';
+            
+            // Show success message
+            document.getElementById('current-question').textContent = `Great! You built a ${componentType}. Keep building your city!`;
+            
+            // Auto-save after placement
+            saveGame();
+        }
+        
+        // Update road or fence appearance based on neighbors
+        function updateRoadOrFenceAppearance(cell, type) {
+            const index = parseInt(cell.dataset.index);
+            const gridSize = 40;
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            
+            // Check neighbors
+            const hasTop = row > 0 && isSameType(type, index - gridSize);
+            const hasBottom = row < gridSize - 1 && isSameType(type, index + gridSize);
+            const hasLeft = col > 0 && isSameType(type, index - 1);
+            const hasRight = col < gridSize - 1 && isSameType(type, index + 1);
+            
+            // Determine the appropriate style
+            let styleClass = type;
+            
+            if (type === 'road') {
+                if (hasTop && hasBottom && hasLeft && hasRight) {
+                    styleClass = 'road-cross';
+                } else if (hasTop && hasBottom && hasLeft) {
+                    styleClass = 'road-horizontal';
+                } else if (hasTop && hasBottom && hasRight) {
+                    styleClass = 'road-horizontal';
+                } else if (hasLeft && hasRight && hasTop) {
+                    styleClass = 'road-vertical';
+                } else if (hasLeft && hasRight && hasBottom) {
+                    styleClass = 'road-vertical';
+                } else if (hasLeft && hasRight) {
+                    styleClass = 'road-horizontal';
+                } else if (hasTop && hasBottom) {
+                    styleClass = 'road-vertical';
+                } else {
+                    styleClass = 'road';
+                }
+            } else if (type === 'fence') {
+                if (hasLeft && hasRight) {
+                    styleClass = 'fence-horizontal';
+                } else if (hasTop && hasBottom) {
+                    styleClass = 'fence-vertical';
+                } else {
+                    styleClass = 'fence';
+                }
+            }
+            
+            cell.classList.add(styleClass);
+        }
+        
+        // Check if a cell has the same building type
+        function isSameType(type, index) {
+            const cell = document.querySelector(`.grid-cell[data-index="${index}"]`);
+            return cell && cell.getAttribute('data-building-type') === type;
+        }
+        
+        // Update adjacent roads and fences when a new one is placed or deleted
+        function updateAdjacentConnections(cell) {
+            const index = parseInt(cell.dataset.index);
+            const gridSize = 40;
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            
+            // Check all adjacent cells
+            const adjacentIndices = [];
+            if (row > 0) adjacentIndices.push(index - gridSize);
+            if (row < gridSize - 1) adjacentIndices.push(index + gridSize);
+            if (col > 0) adjacentIndices.push(index - 1);
+            if (col < gridSize - 1) adjacentIndices.push(index + 1);
+            
+            adjacentIndices.forEach(adjIndex => {
+                const adjCell = document.querySelector(`.grid-cell[data-index="${adjIndex}"]`);
+                if (adjCell) {
+                    const buildingType = adjCell.getAttribute('data-building-type');
+                    if (buildingType === 'road' || buildingType === 'fence') {
+                        // Clear existing classes
+                        adjCell.className = 'grid-cell occupied';
+                        adjCell.setAttribute('data-building-type', buildingType);
+                        
+                        // Reapply the appropriate style
+                        updateRoadOrFenceAppearance(adjCell, buildingType);
+                        
+                        // Re-add delete overlay
+                        const deleteOverlay = document.createElement('div');
+                        deleteOverlay.className = 'delete-overlay';
+                        deleteOverlay.textContent = '🗑️';
+                        deleteOverlay.addEventListener('click', handleDelete);
+                        adjCell.appendChild(deleteOverlay);
+                    }
+                }
+            });
+        }
+        
+        // Update money display
+        function updateMoneyDisplay() {
+            document.getElementById('money').textContent = money;
+        }
+        
+        // Update stats display
+        function updateStats() {
+            document.getElementById('building-count').textContent = buildingCount;
+            document.getElementById('population').textContent = population;
+            document.getElementById('people-count').textContent = peopleCount;
+        }
+        
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
